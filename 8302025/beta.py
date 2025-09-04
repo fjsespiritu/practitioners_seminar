@@ -106,22 +106,13 @@ if __name__ == '__main__':
         s_int = int(s)
         data = price_df[price_df['cwiq_code'] == s_int].copy()
 
-        #Stock split and dividend adjustments
-        splits = data['splits'].replace(0,1).to_numpy()
-        cumulative = np.cumprod(splits[::-1])[::-1]
-        data['adj_fac'] = splits/cumulative
-        data['adj_price'] = data['closing_price']*data['adj_fac']
-
-        #take log returns of dividend adjusted price
-        data['div_adj']=data['adj_price']+data['dividends']
-        data['log_return'] = np.log(data['div_adj']/(data['adj_price'].shift(1)))
+        #Log-returns
+        data['prev_adj_price'] = data['closing_price'].shift(1)/data['splits']
+        data['log_return'] = np.log((data['closing_price']+data['dividends'])/(data['prev_adj_price']))
 
         #Log ret F1 to F5
-        data['log_ret_F1'] = np.log(data['adj_price'].shift(-1)/data['div_adj'])
-        data['log_ret_F2'] = np.log(data['adj_price'].shift(-2)/data['div_adj'].shift(-1))
-        data['log_ret_F3'] = np.log(data['adj_price'].shift(-3)/data['div_adj'].shift(-2))
-        data['log_ret_F4'] = np.log(data['adj_price'].shift(-4)/data['div_adj'].shift(-3))
-        data['log_ret_F5'] = np.log(data['adj_price'].shift(-5)/data['div_adj'].shift(-4))
+        for k in range(1,6):
+            data[f'log_ret_F{k}'] = data['log_return'].shift(-k)
 
         #Log ret SF5
         sf5_cols = ['log_ret_F1', 'log_ret_F2', 'log_ret_F3', 'log_ret_F4', 'log_ret_F5']
@@ -129,10 +120,11 @@ if __name__ == '__main__':
 
         # Select relevant columns
         df_cols = ['date', 'cwiq_code', 'log_return'] + sf5_cols + ['log_ret_SF5']
-
         daily_log_ret = data[df_cols]
+
         daily_log_ret_with_spx = daily_log_ret.merge(macros, on='date')
 
+        daily_log_ret_with_spx = daily_log_ret_with_spx.sort_values('date')
         num = daily_log_ret_with_spx['log_return'].rolling(window).cov(daily_log_ret_with_spx['SPX_log_ret'])
         denom = daily_log_ret_with_spx['SPX_log_ret'].rolling(window).var()
 
