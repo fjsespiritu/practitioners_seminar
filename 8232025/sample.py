@@ -2,7 +2,7 @@
 #!/usr/bin/python3
 """
     to run the file you might have to activate conda: conda activate base
-    ample command: ./sample.py -f 20150104 -t ADBE -o /Users/rodbarit/Documents/Ateneo_seminar/2025/20250823/
+    ample command:  python "C:\Users\Jojie\Documents\Practitioner's Seminar\8232025\sample.py" -f 20231206 -t ADBE COST CSCO MAR MCD -o "C:\Users\Jojie\Desktop\School\Masters\Sem 1\PracSem\review"
     choose only from these stocks: [ADBE, COST, CSCO, MAR, MCD]
 
 """
